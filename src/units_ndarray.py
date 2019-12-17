@@ -5,7 +5,7 @@ COMPARISON_UFUNC = {np.greater, np.greater_equal, np.less, np.less_equal, np.not
 UNITLESS_UFUNC   = {np.sin, np.cos, np.exp, np.arcsin, np.arccos, np.tan, np.arctan, np.log, np.log10}
 
 class UnitError(Exception) : pass
-
+repcal = False
 def search(st):
     cmd="echo \"search " + st +"\" | units "
     out=os.popen(cmd)
@@ -74,7 +74,13 @@ class phval(np.ndarray):
 
         
     def __repr__(self):
-        return  (self.values.__repr__()) + " eV^"+str(self.units)
+        if repcal:
+            if self.units == 0:
+                return  (self.values.__str__())
+            else:
+                return  (self.values.__str__()) + " eV^"+str(self.units)
+        else:
+            return  (self.values.__repr__()) + " eV^"+str(self.units)
 
     def __str__(self):
         return  (self.values.__str__()) + " eV^"+str(self.units)
