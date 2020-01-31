@@ -11,6 +11,5 @@ Install [GNU units package](https://www.gnu.org/software/units/)
 Rename units to .units and place it in your HOME
 
 ## Notebook example
-you can test the package by running [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jsalvado/pyunits/dev?filepath=%2Fnotebooks%2F)
-
+you can test the package by running [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jsalvado/pyunits/master?filepath=notebooks)
 
