@@ -110,9 +110,29 @@ class phval(np.ndarray):
         return phval(self.values[indx], self.units)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        def get_units(obj):
+            if isinstance(obj, phval):
+                return obj.units
+            elif isinstance(obj, (list, tuple)):
+                #check all units the same
+                units = np.unique(tuple(map(get_units, obj)))
+                if len(units) > 1:
+                    raise UnitError('Operation with mixed units are not supported')
+                else:
+                    unit = units[0]
+                return unit
+            else : return 0
+
+        def get_casted(obj):
+            if isinstance(obj, phval):
+                return obj.view(np.ndarray)
+            elif isinstance(obj, (list, tuple)):
+                return np.array(tuple(map(get_casted, obj)))
+            else : return obj
+
         list_inputs = list(inputs)
-        list_units = [inp.units if isinstance(inp, phval) else 0 for inp in inputs]
-        casted_inputs = [inp.view(np.ndarray) if isinstance(inp, phval) else inp for inp in inputs]
+        list_units = [int(get_units(inp)) for inp in inputs]
+        casted_inputs = [get_casted(inp) for inp in inputs]
 
         if self.use_units:
 
