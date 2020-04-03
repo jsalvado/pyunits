@@ -112,8 +112,8 @@ class phval(np.ndarray):
 
         if ufunc == np.power:
             units = list_units[0] * inputs[1]
-            if type(units)==int:
-                return phval(ufunc(*casted_inputs), units=units)
+            if isinstance(units, int) or (units==0):
+                return phval(ufunc(*casted_inputs), units=int(units))
             else:
                 raise UnitError("Values with units only have integer powers")
 
