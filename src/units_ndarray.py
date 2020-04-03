@@ -32,7 +32,12 @@ class phval(np.ndarray):
         obj = np.asarray(obj).view(cls)
         obj.units = units
         obj.name = name
+        cls.use_units=True
         return obj
+
+    @classmethod
+    def turn_of_units(cls):
+        cls.use_units = False
 
     @property
     def values(self):
@@ -109,46 +114,48 @@ class phval(np.ndarray):
         list_units = [inp.units if isinstance(inp, phval) else 0 for inp in inputs]
         casted_inputs = [inp.view(np.ndarray) if isinstance(inp, phval) else inp for inp in inputs]
 
+        if self.use_units:
 
-        if ufunc == np.power:
-            units = list_units[0] * inputs[1]
-            if isinstance(units, int) or (units==0):
-                return phval(ufunc(*casted_inputs), units=int(units))
-            else:
-                raise UnitError("Values with units only have integer powers")
+            if ufunc == np.power:
+                units = list_units[0] * inputs[1]
+                if isinstance(units, int) or (units==0):
+                    return phval(ufunc(*casted_inputs), units=int(units))
+                else:
+                    raise UnitError("Values with units only have integer powers")
 
-        if ufunc == np.square:
-            units = list_units[0] * 2
-            return phval(ufunc(*casted_inputs), units=units)
-            
-
-
-        if ufunc in UNITLESS_UFUNC:
-            units = list_units[0]
-            if units==0:
+            if ufunc == np.square:
+                units = list_units[0] * 2
                 return phval(ufunc(*casted_inputs), units=units)
-            else:
-                raise UnitError("This is a unitless fucntion, divide by some physical scale!")
 
 
-        if ufunc == np.negative:
-            return phval(ufunc(*casted_inputs), units=list_units[0])
+            if ufunc in UNITLESS_UFUNC:
+                units = list_units[0]
+                if units==0:
+                    return phval(ufunc(*casted_inputs), units=units)
+                else:
+                    raise UnitError("This is a unitless fucntion, divide by some physical scale!")
 
-        if ufunc in COMPARISON_UFUNC.union([np.add, np.subtract]):
-            if (list_units[0] == list_units[1]) or any(np.all(inputs == 0) for inputs in casted_inputs):
+
+            if ufunc == np.negative:
                 return phval(ufunc(*casted_inputs), units=list_units[0])
+
+            if ufunc in COMPARISON_UFUNC.union([np.add, np.subtract]):
+                if (list_units[0] == list_units[1]) or any(np.all(inputs == 0) for inputs in casted_inputs):
+                    return phval(ufunc(*casted_inputs), units=list_units[0])
+                else:
+                    raise UnitError("Can't compare non-zero values with different units!")
+            if ufunc == np.multiply:
+                units = list_units[0] + list_units[1]
+                return phval(ufunc(*casted_inputs), units=units)
+
+            if ufunc == np.divide:
+                units = list_units[0] - list_units[1]
+                return phval(ufunc(*casted_inputs), units=units)
+
             else:
-                raise UnitError("Can't compare non-zero values with different units!")
-        if ufunc == np.multiply:
-            units = list_units[0] + list_units[1]
-            return phval(ufunc(*casted_inputs), units=units)
-
-        if ufunc == np.divide:
-            units = list_units[0] - list_units[1]
-            return phval(ufunc(*casted_inputs), units=units)
-
+                raise UnitError("ufunc error")
         else:
-            raise UnitError("ufunc error")
+            return  ufunc(*casted_inputs)
 
     def __array_finalize__(self, obj):
         if obj is None: return
