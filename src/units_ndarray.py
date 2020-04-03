@@ -137,16 +137,36 @@ class phval(np.ndarray):
         if self.use_units:
 
             if ufunc == np.power:
-                units = list_units[0] * inputs[1]
-                if isinstance(units, int) or (units==0):
-                    return phval(ufunc(*casted_inputs), units=int(units))
+                if list_units[1] != 0:
+                    raise UnitError("power: not units allowed in the exponend, divide by something!")
+                elif list_units[0]==0:
+                    return phval(ufunc(*casted_inputs), units=0)
+                if np.isscalar(casted_inputs[1]):
+                    units = list_units[0]*casted_inputs[1]
+                    if ((units-int(units))==0):
+                        return phval(ufunc(*casted_inputs), units=int(units))
+                    else:
+                        raise UnitError("Only integer powers of units are valid")
+                elif np.all(casted_inputs[1]==casted_inputs[1][0]):
+                    units = list_units[0]*casted_inputs[1][0]
+                    if ((units-int(units))==0):
+                        return phval(ufunc(*casted_inputs), units=int(units))
+                    else:
+                        raise UnitError("Only integer powers of units are valid")
                 else:
-                    raise UnitError("Values with units only have integer powers")
+                    raise UnitError("power: all the phval should have the same units")
 
             if ufunc == np.square:
                 units = list_units[0] * 2
                 return phval(ufunc(*casted_inputs), units=units)
 
+            if ufunc == np.sqrt:
+                if list_units[0]%2==0:
+                    units = int(list_units[0]/2)
+                    return phval(ufunc(*casted_inputs), units=units)
+                else:
+                    raise UnitError("SQRT failed, output units must be an integer power")
+                
 
             if ufunc in UNITLESS_UFUNC:
                 units = list_units[0]
