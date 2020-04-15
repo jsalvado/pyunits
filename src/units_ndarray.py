@@ -109,6 +109,8 @@ class phval(np.ndarray):
     def __getitem__(self, indx):
         return phval(self.values[indx], self.units)
 
+    __array_priority__ = 1000
+
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         def get_units(obj):
             if isinstance(obj, phval):
